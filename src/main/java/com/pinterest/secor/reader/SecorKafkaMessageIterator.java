@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import com.pinterest.secor.common.SecorConfig;
 import com.pinterest.secor.common.ZookeeperConnector;
 import com.pinterest.secor.message.Message;
+import com.pinterest.secor.message.MessageHeader;
 import com.pinterest.secor.util.IdUtil;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.TopicPartition;
@@ -40,8 +41,10 @@ public class SecorKafkaMessageIterator implements KafkaMessageIterator {
             return null;
         } else {
             ConsumerRecord<byte[], byte[]> consumerRecord = mRecordsBatch.pop();
+            List<MessageHeader> headers = new ArrayList<>();
+            consumerRecord.headers().forEach(header -> headers.add(new MessageHeader(header.key(), header.value())));
             return new Message(consumerRecord.topic(), consumerRecord.partition(), consumerRecord.offset(),
-                    consumerRecord.key(), consumerRecord.value(), consumerRecord.timestamp());
+                    consumerRecord.key(), consumerRecord.value(), consumerRecord.timestamp(), headers);
         }
     }
 
